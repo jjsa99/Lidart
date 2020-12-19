@@ -36,6 +36,9 @@ int flag_right = 0;
 int flag_left = 0;
 int size_n = 0;                                    //inicialization of the variable for the size of the array
 
+int c_l = 0;                                        // variables used to count the saved photos
+int c_r = 0;  
+
 std::vector <geometry_msgs::Point> coord;
 // geometry_msgs::Pose point;
 geometry_msgs::Point point;
@@ -51,6 +54,10 @@ int findSpotCoordinates(double cRightPh[2],double cLeftPh[2]) {
     cLeftPh[1] = (cLeftPh[1]-1216/2)*pixel;            //Then, each coordinate is multiplied by the pixel size, in order to obtain its real position on the sensor
     cRightPh[0] = -(cRightPh[0]-1936/2)*pixel;
     cRightPh[1] = (cRightPh[1]-1216/2)*pixel;
+    //printf("Left sensor width %f\n",cLeftPh[0]);
+    //printf("Left sensor Height %f\n",cLeftPh[1]);
+    //printf("Right sensor width %f\n",cRightPh[0]);
+    //printf("Right sensor height %f\n",cRightPh[1]);
 
 
     double fl = 16*pow(10, -3);                         //Focal distance
@@ -102,17 +109,25 @@ void sizeCallBack(const std_msgs::Int8::ConstPtr& size)
 int counter2 =0;
 void imageCallback_right(const sensor_msgs::ImageConstPtr& msg)
 {
-
+  
   flag_right = 0;
   try
   {
+
     im_right = cv_bridge::toCvShare(msg, "mono8")->image;
     cv::waitKey(30);
     ROS_INFO("right_image received %d",counter2);
     findCentroid(im_right.data, cRightPh);
+    ROS_INFO("crightPh width : %f\n",cRightPh[0]);
+    ROS_INFO("crightPh height: %f\n",cRightPh[1]);
     flag_right = 1;
     cout << flag_right << '\n';
 
+    // std::string right_file = "/home/lidart/lidart_stereo_images/right/right_" + to_string(c_r) + ".png";
+    // cv::imwrite(right_file,im_right);
+    // cv::waitKey(30);
+    // c_r = c_r + 1;                                                        // increments the count_right
+    
   }
   catch (cv_bridge::Exception& e)
   {
@@ -132,10 +147,16 @@ void imageCallback_left(const sensor_msgs::ImageConstPtr& msg)
     cv::waitKey(30);
     ROS_INFO("left_image received %d",counter1);
     findCentroid(im_left.data, cLeftPh);
+    ROS_INFO("cLeftPh width : %f\n",cLeftPh[0]);
+    ROS_INFO("cLeftPh height: %f\n",cLeftPh[1]);
     //cout << "sent left" << '\n';
     flag_left = 1;
     cout << flag_left << '\n';
 
+    // std::string left_file = "/home/lidart/lidart_stereo_images/left/left_" + to_string(c_l) + ".png";
+    // cv::imwrite(left_file,im_left);
+    // cv::waitKey(30);
+    // c_l = c_l + 1;                                                      // increments the count_left
   }
 
   catch (cv_bridge::Exception& e)

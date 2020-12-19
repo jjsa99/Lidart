@@ -35,6 +35,8 @@ def initializeLaser():
 
 	global ser1
 
+	start_laser = time.time()
+
 	ser1 = serial.Serial()
 	#ser1.port = "/dev/ttyUSB0"
 	ser1.port = "/dev/ttyACM0"
@@ -85,7 +87,8 @@ def initializeLaser():
 	else:
 		print ("cannot open serial port ")
 
-	
+	end_laser = time.time()
+	print("laser time: " ,(end_laser - start_laser))
 
 ## Mirror function()
 def initializeMirror():
@@ -107,9 +110,11 @@ def initializeMirror():
 
 	
 def trigger():
-    
+
 	global ser1
 
+	print("trigger in")
+	start = time.time()					# measuring the time the trigger takes
 	if ser1.isOpen():
     
 		try:
@@ -133,6 +138,9 @@ def trigger():
 
 	else:
 		print ("cannot open serial port ")
+	end = time.time()
+	print(end-start)
+	print("trigger out")
 
 def call_Mirror_Pattern(pattern):  				## trocar nome da variável data para evitar confusão
 
@@ -194,20 +202,23 @@ def call_Photo_Ready2(data):
 def changePosition(position):
 	global Scuti1
 
-	angleA = "angleA = {} deg\r\n".format(position[0])
+	# angleA = "angleA = {} deg\r\n".format(position[0])
 	rospy.loginfo("position A: %d",position[0])
-	angleB = "angleB = {} deg\r\n".format(position[1])
+	# angleB = "angleB = {} deg\r\n".format(position[1])
 	rospy.loginfo("position B %d:",position[1])
+	angle2 = "2changle = {} deg; {}deg\r\n".format(position[0],position[1])
 	
 	# Scuti1.ser.write('angleA = -5.0 deg\r\n'.encode())
-	Scuti1.ser.write(angleA.encode())
+	""" Scuti1.ser.write(angleA.encode())
 	print("Angle A read: ",Scuti1.ser.read(4))
 	Scuti1.ser.write(angleB.encode())
 	print("Angle B read: ",Scuti1.ser.read(4))
-	#'angleA = -5.0 deg\r\n'
+	#'angleA = -5.0 deg\r\n' """
+	Scuti1.ser.write(angle2.encode())
+
 	print("changing position")
     
-	time.sleep(0.01)
+	time.sleep(0.5)													# this sleep is very important 
 
 	
 	trigger()
@@ -260,17 +271,17 @@ def Mirror_Arduino():
 		if init==0 and ready==1 and stop==0:     # ready=1, supõe que no inicio as cameras estão prontas para tirar foto
 			if start==1 and ready==1:            #start=1, recebeu novos parametros e começa de novo
 				rospy.loginfo("received new parameters")
-				x=-FOVhor/2
-				y=-FOVvert/2
+				x=-FOVhor
+				y=-FOVvert
 				i=1                              # i=1 => andar para direita
 				k=1                              # k=1 =>para nao imprimir logo a segunda posição
 				start=0
-			elif x>=FOVhor/2 and increment==0:
+			elif x>=FOVhor and increment==0:
 				y=y+stepvert                     # subimos de linha / amplitude
 				i=0
 				k=1
 				increment=1                      #para nao incrementer o y mais que uma vez seguidas
-			elif x<=-FOVhor/2 and y!=-FOVvert/2 and increment==0:
+			elif x<=-FOVhor and y!=-FOVvert and increment==0:
 				y=y+stepvert
 				i=1
 				k=1
@@ -291,11 +302,11 @@ def Mirror_Arduino():
 			rospy.loginfo("%d",a)
 			a = a+1
 
-			if y==FOVvert/2 and FOVvert%2 == 0 and x==FOVhor/2: #ultimo ponto da matriz
+			if y==FOVvert and x==FOVhor: #ultimo ponto da matriz
 				start=1
 
-			if y==FOVvert/2 and FOVvert%2!=0 and x==-FOVhor/2: #ultimo ponto da matriz
-				start=1
+			#if y==FOVvert/2 and FOVvert%2!=0 and x==-FOVhor/2: #ultimo ponto da matriz
+			#	start=1
 
 		if photoReady1 == 1 and photoReady2 == 1:
 			rospy.loginfo("cameras took a photo")
