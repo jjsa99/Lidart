@@ -35,7 +35,7 @@ tmpyList = []
 
 N = 0
 
-plt.ion()                                                           # interactive mode on                                                                  
+plt.ion()
 f = plt.figure(figsize=(5.28,3.54))
 a = plt.subplot()
 
@@ -43,25 +43,24 @@ def change_state_start():
 
     start_not_stop = 1
     # Deactivate entries when the system is working
-    .config(state='disabled')
+    opFoVh.config(state='disabled')
     opFoVv.config(state='disabled')
     opsteph.config(state='disabled')
     opstepv.config(state='disabled')
 
-    # parameters used for the input values
     global FoVh, FoVv, stepv, steph, N
-    # The max and min range possible for the mirror is [+30,-30] in angles
-    FoVh = int(10000*float(.get()))
-    if FoVh > 300000:                                   # If the input horizontal field of view is bigger than the maximum (30 degress), then the maximum is assumed
-        FoVh = 300000
-    if FoVh < -300000:                                        # If the input horizontal field of view is less than the minimum (the minimum step possible), then the minimum is assumed
-        FoVh = -300000
+
+    FoVh = int(10000*float(opFoVh.get()))
+    if FoVh > 450000:                                   # If the input horizontal field of view is bigger than the maximum (45 degress), then the maximum is assumed
+        FoVh = 450000
+    if FoVh < 3:                                        # If the input horizontal field of view is less than the minimum (the minimum step possible), then the minimum is assumed
+        FoVh = 3
 
     FoVv = int(10000*float(opFoVv.get()))
-    if FoVv > 300000:                                   # If the input vertical field of view is bigger than the maximum (45 degress), then the maximum is assumed
-        FoVv = 300000
-    if FoVv < -300000:                                        # If the input vertical field of view is less than the minimum (the minimum step possible), then the minimum is assumed
-        FoVv = -300000
+    if FoVv > 450000:                                   # If the input vertical field of view is bigger than the maximum (45 degress), then the maximum is assumed
+        FoVv = 450000
+    if FoVv < 3:                                        # If the input vertical field of view is less than the minimum (the minimum step possible), then the minimum is assumed
+        FoVv = 3
 
     steph = int(10000*float(opsteph.get()))
     if steph > FoVh:                                    # If the input horizontal step is bigger than the maximum (the horizontal FoV), then the maximum is assumed
@@ -75,7 +74,6 @@ def change_state_start():
     if stepv < 3:                                       # If the input vertical step is less than the minimum achievable by the system (), then the minimum is assumed
         stepv = 3
 
-    # in order to do integer steps
     if (2*FoVh % steph) != 0:
         FoVh = (2*FoVh - (2*FoVh % steph))/2
     if (2*FoVv % stepv) != 0:
@@ -86,9 +84,9 @@ def change_state_start():
     steph = float(steph)/10000
     stepv = float(stepv)/10000
 
-    #N = ((2*FoVh/steph)+1)*((2*FoVv/stepv)+1)          # Calculation of the total number of points in the point cloud
+    N = ((2*FoVh/steph)+1)*((2*FoVv/stepv)+1)          # Calculation of the total number of points in the point cloud
     #N = 63	                                            # Total number of points in the point cloud for the artificial photos
-    N = 10
+    #N = 10
 
     # print(start_not_stop)                               # ROS - É NESTE SÍTIO QUE, EM VEZ DE PRINTS, DEVES MANDAR AQUELES VALORES PARA O EXTERIOR
     # print(FoVh)                                         #     - start_not_stop e N SAO INTEIROS; - FoVh, FoVv, steph E stepv SÃO FLOATS
@@ -97,14 +95,13 @@ def change_state_start():
     # print(stepv)
     # print(N)
 
-    #publishes the input parameters into ROS
     param = Float32MultiArray()
     param.data = [FoVh,FoVv,steph,stepv]
     pub1.publish(param)
     #pub2.publish(N)
 	
     # PARCEIRO, LINHAS ABAIXO:
-    a.scatter(tmpxList, tmpyList, c = '#000000',linewidth = 10)
+    #a.scatter(tmpxList, tmpyList, c = '#000000', cmap = 'viridis_r', linewidth = 10)
 	# Penso que aqui não devas fazer scatter, mas apenas declarar a figura
     # Assim: 
     #f = Figure(figsize=(5.28,3.54))                           # Pointcloud figure creation
@@ -128,7 +125,7 @@ def change_state_stop():
 
     start_not_stop = 0
     # Activate entries when the system is not working
-    .config(state='normal')
+    opFoVh.config(state='normal')
     opFoVv.config(state='normal')
     opsteph.config(state='normal')
     opstepv.config(state='normal')
@@ -143,38 +140,33 @@ def animate(i):                                         # Pointcloud update func
 
     global xList, yList, zList, N
     global tmpxList, tmpyList
-
-    # receives the coordinates
+ 
     xList.append(i.x)
     yList.append(i.y)
     zList.append(i.z)
-    print(xList)
-    print(yList)
-    print(zList)
     
-    ## qual é que é a vantagem de utilizar o tmpxList e o tmpyList?
     tmpxList.append(i.x)
     tmpyList.append(i.y)
+
+    rospy.loginfo(xList)
+    rospy.loginfo(yList)
+    rospy.loginfo(zList)
 
     
     rospy.loginfo(len(xList))
 
     if(len(xList) == N):    
-     
-        # PARCEIRO, LINHAS ABAIXO:
-        # Estas 2 linhas, também diria que nao fazem cá falta, mas tem que se ver com a Vitória porque foi ela que as colocou, acho eu
-        #a.scatter(tmpxList, tmpyList, c = '#000000', linewidth = 10)
-        #time.sleep(0.8)
-                   
+    
         a.scatter(xList, yList, c = zList, cmap = 'viridis_r', linewidth = 1)
         f.canvas.draw_idle()
                
-        # deletes the content of the arrays for a next iteration       
         del xList[:]
         del yList[:]
         del zList[:]
         		
-        rospy.loginfo('Point Cloud')      
+        rospy.loginfo('Point Cloud')    
+         
+       
         
         #Unused lines of code
         #plt.draw_if_interactive()
@@ -257,13 +249,12 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
         mirrortext = Label(self, text = "MIRROR PATTERN SETTINGS:", font=('LARGE_FONT',10)) # label
         mirrortext.place(x = 135, y = 456) # position of the label
 
-        # used to save the input parameters
-        global , opFoVv, opsteph, opstepv             
+        global opFoVh, opFoVv, opsteph, opstepv
 
         lFovh = Label(self, text = "Horizontal FoV: ", font=('LARGE_FONT',12)) # Horizontal FoV
         lFovh.place(x = 88, y = 496) # aqui
-         = Entry(self, font=('LARGE_FONT',15),state='normal') 
-        .place(x = 216, y = 492)
+        opFoVh = Entry(self, font=('LARGE_FONT',15),state='normal') 
+        opFoVh.place(x = 216, y = 492)
 
         lFovv = Label(self, text = "Vertical FoV: ", font=('LARGE_FONT',12)) # Vertical FoV
         lFovv.place(x = 88, y = 526)
