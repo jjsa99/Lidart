@@ -111,28 +111,29 @@ void imageCallback_right(const sensor_msgs::ImageConstPtr& msg)
 {
   
   flag_right = 0;
-  try
-  {
 
-    im_right = cv_bridge::toCvShare(msg, "mono8")->image;
+
+  im_right = cv_bridge::toCvShare(msg, "mono8")->image;
+  cv::waitKey(30);
+
+  if(counter2 == 0)
+  {
+    ROS_INFO("Initial Image: right_image received %d",counter2);
+    std::string right_file = "/home/lidart/init_photos/right/right_init.png";
+    cv::imwrite(right_file,im_right);
     cv::waitKey(30);
+    
+  }
+  else
+  {
     ROS_INFO("right_image received %d",counter2);
     findCentroid(im_right.data, cRightPh);
     ROS_INFO("crightPh width : %f\n",cRightPh[0]);
     ROS_INFO("crightPh height: %f\n",cRightPh[1]);
     flag_right = 1;
     cout << flag_right << '\n';
-
-    // std::string right_file = "/home/lidart/lidart_stereo_images/right/right_" + to_string(c_r) + ".png";
-    // cv::imwrite(right_file,im_right);
-    // cv::waitKey(30);
-    // c_r = c_r + 1;                                                        // increments the count_right
-    
   }
-  catch (cv_bridge::Exception& e)
-  {
-    ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
-  }
+  c_r = c_r + 1;                                                        // increments the count_right
   counter2++;
 }
 
@@ -141,10 +142,19 @@ void imageCallback_left(const sensor_msgs::ImageConstPtr& msg)
 {
 
   flag_left = 0;
-  try
+
+  im_left = cv_bridge::toCvShare(msg, "mono8")->image;
+  cv::waitKey(30);
+
+  if(counter1 == 0)
   {
-    im_left = cv_bridge::toCvShare(msg, "mono8")->image;
-    cv::waitKey(30);
+      ROS_INFO("Initial Image: left_image received %d",counter1);
+      std::string left_file = "/home/lidart/init_photos/left/left_init.png";
+      cv::imwrite(left_file,im_left);
+      cv::waitKey(30);
+  }
+  else{
+
     ROS_INFO("left_image received %d",counter1);
     findCentroid(im_left.data, cLeftPh);
     ROS_INFO("cLeftPh width : %f\n",cLeftPh[0]);
@@ -153,16 +163,8 @@ void imageCallback_left(const sensor_msgs::ImageConstPtr& msg)
     flag_left = 1;
     cout << flag_left << '\n';
 
-    // std::string left_file = "/home/lidart/lidart_stereo_images/left/left_" + to_string(c_l) + ".png";
-    // cv::imwrite(left_file,im_left);
-    // cv::waitKey(30);
-    // c_l = c_l + 1;                                                      // increments the count_left
   }
-
-  catch (cv_bridge::Exception& e)
-  {
-    ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
-  }
+  c_l = c_l + 1;                                                      // increments the count_left
   counter1++;
 
 }

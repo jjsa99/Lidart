@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 #from tkFont import Font
 
 
+
 LARGE_FONT=("Verdana",14)
 style.use("dark_background")
 
@@ -35,9 +36,21 @@ tmpyList = []
 
 N = 0
 
-plt.ion()
+# Point cloud plot
 f = plt.figure(figsize=(5.28,3.54))
 a = plt.subplot()
+plt.ion()
+
+# left plot
+f_left = plt.figure(figsize = (5,5))
+a_left = f_left.add_subplot(111)
+
+# right plot
+f_right = plt.figure(figsize = (5,5))
+a_right = f_right.add_subplot(111)
+
+
+
 
 def change_state_start():
 
@@ -108,7 +121,7 @@ def change_state_start():
     #a = f.add_subplot(111) # 111, projection='3d'
     # talvez seja por causa desta linha que aparece uma segunda point cloud
 
-    global xList, yList, zList
+    global xList, yList, zList 
 
     del xList[:]
     del yList[:]
@@ -136,6 +149,7 @@ def change_state_stop():
 
 
 
+
 def animate(i):                                         # Pointcloud update function
 
     global xList, yList, zList, N
@@ -156,8 +170,10 @@ def animate(i):                                         # Pointcloud update func
     rospy.loginfo(len(xList))
 
     if(len(xList) == N):    
-    
-        a.scatter(xList, yList, c = zList, cmap = 'viridis_r', linewidth = 1)
+        
+        #a.clear()
+        a = f.add_subplot(111, projection='3d')
+        a.scatter(xList, yList,zList, cmap = 'viridis_r', linewidth = 1)
         f.canvas.draw_idle()
                
         del xList[:]
@@ -182,6 +198,26 @@ def animate(i):                                         # Pointcloud update func
         #plt.clf()
         #a.clear()
 
+def take_photo():
+
+    pub_trigger.publish(1)
+    path_left = '/home/lidart/init_photos/left/left_init.png'
+    path_right = '/home/lidart/init_photos/right/right_init.png'
+
+    while(os.path.isfile(path_left) == 0) and (os.path.isfile(path_right) == 0 ):
+        rospy.loginfo("1")
+        rospy.sleep(1)
+
+    rospy.sleep(2)
+    rospy.loginfo("2")
+    # left 
+    img_left = plt.imread(path_left)
+    a_left.imshow(img_left)
+
+    # right
+    img_right = plt.imread(path_right)
+    a_right.imshow(img_right)
+    
 
 
 class OrisDashboard(tk.Tk):
@@ -223,8 +259,7 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
         path = os.path.dirname(os.path.abspath(__file__))   # get the current file's directory path
 
         # GUI title
-        title = Label(self, text = "LiDART - DASHBOARD", font=('LARGE_FONT',18))
-        title.place(x = 450, y = 12)
+        title = Label(self, text = "LiDART - DASHBOARD", font=('LARGE_FONT',18)).place(x = 800, y = 12)
 
         # #Foto of the physical scenario, captured by the left camera
         # load_photo = PIL.Image.open(path+"/normal_photo.bmp")                         # ESTA IMAGEM TAMBÉM DEVE SER LIDA DO NÓ ROS
@@ -236,54 +271,50 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
         # photo_label = Label(self, text = "[photo of the pyshical scene captured by the left camera]", font=('LARGE_FONT',10))
         # photo_label.place(x = 102, y = 417)
 
+
         # Point cloud
         canvas = FigureCanvasTkAgg(f, self)     # bring the Pointcloud canvas forward
         canvas.draw()
-        canvas.get_tk_widget().place(x = 579, y = 54)
-        canvas_label = Label(self, text = "[pointcloud of the scene produced by ORIS]", font=('LARGE_FONT',10))
-        canvas_label.place(x = 660, y = 417)
+        canvas.get_tk_widget().place(x = 1200, y = 100)
+        #canvas_label = Label(self, text = "[pointcloud of the scene produced by ORIS]", font=('LARGE_FONT',10)).place(x = 1200, y = 900)
 
+        # left
+        canvas_left = FigureCanvasTkAgg(f_left,self)
+        canvas_left.draw()
+        canvas_left.get_tk_widget().place(x = 50,y = 100)
+
+        # right
+        canvas_left = FigureCanvasTkAgg(f_right,self)
+        canvas_left.draw()
+        canvas_left.get_tk_widget().place(x = 600,y = 100)
      
-
-        # Laser Pattern choice (Input Parameters)
-        mirrortext = Label(self, text = "MIRROR PATTERN SETTINGS:", font=('LARGE_FONT',10)) # label
-        mirrortext.place(x = 135, y = 456) # position of the label
-
         global opFoVh, opFoVv, opsteph, opstepv
 
-        lFovh = Label(self, text = "Horizontal FoV: ", font=('LARGE_FONT',12)) # Horizontal FoV
-        lFovh.place(x = 88, y = 496) # aqui
-        opFoVh = Entry(self, font=('LARGE_FONT',15),state='normal') 
-        opFoVh.place(x = 216, y = 492)
+        # Laser Pattern choice (Input Parameters)
+        mirrortext = Label(self, text = "Mirror pattern settings:", font=('LARGE_FONT',15)).place(x = 50, y = 750) # position of the label
 
-        lFovv = Label(self, text = "Vertical FoV: ", font=('LARGE_FONT',12)) # Vertical FoV
-        lFovv.place(x = 88, y = 526)
-        opFoVv = Entry(self, font=('LARGE_FONT',15),state='normal')
-        opFoVv.place(x = 216, y = 522)
+        # Horizontal FoV
+        lFovh = Label(self, text = "Horizontal FoV: ", font=('LARGE_FONT',12)).place(x = 50, y = 810)
+        opFoVh = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 200, y = 810)
+        
+        # Vertical FoV
+        lFovv = Label(self, text = "Vertical FoV: ", font=('LARGE_FONT',12)).place(x = 50, y = 850)
+        opFoVv = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 200, y = 850)
 
-        lsteph = Label(self, text = "Horizontal step: ", font=('LARGE_FONT',12)) # Horizontal step
-        lsteph.place(x = 88, y = 556)
-        opsteph = Entry(self, font=('LARGE_FONT',15),state='normal')
-        opsteph.place(x = 216, y = 552)
+        # Horizontal step
+        lsteph = Label(self, text = "Horizontal step: ", font=('LARGE_FONT',12)).place(x = 550, y = 810)
+        opsteph = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 700, y = 810)
 
-        lstepv = Label(self, text = "Vertical step: ", font=('LARGE_FONT',12)) # Vertical step
-        lstepv.place(x = 88, y = 586)
-        opstepv = Entry(self, font=('LARGE_FONT',15),state='normal')
-        opstepv.place(x = 216, y = 582)
+        # Vertical step
+        lstepv = Label(self, text = "Vertical step: ", font=('LARGE_FONT',12)).place(x = 550, y = 850)
+        opstepv = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 700, y = 850)
 
-        # RUN, STOP and QUIT push buttons (for the user to initialize, stop/freeze and quit the system)
-        button_run = tk.Button(self,text="RUN",
-                            command=lambda *args: change_state_start(), height = 4, width = 14, font=('LARGE_FONT',15))
-        button_run.place(x = 610, y = 485)
-
-        button_quit = tk.Button(self,text="QUIT",
-                            command=lambda: controller.quit_function(), height = 4, width = 14, font=('LARGE_FONT',15))
-        button_quit.place(x = 860, y = 485)
-
-        # Push button to go to the secondary page of the GUI (specifications page)
-        #button_Page2 = tk.Button(self,text="View system's global set of specifications and instructions",
-        #                    command=lambda: controller.show_frame(Page2), height = 0, width = 57, font=('LARGE_FONT',10))
-        #button_Page2.place(x = 606, y = 567)
+        # Run button
+        button_run = tk.Button(self,text="RUN",command=lambda *args: change_state_start(), height = 4, width = 14, font=('LARGE_FONT',15)).place(x = 1000, y = 800)
+        # Quit button
+        button_quit = tk.Button(self,text="QUIT",command=lambda: controller.quit_function(), height = 4, width = 14, font=('LARGE_FONT',15)).place(x = 1250, y = 800)
+        #Take Photo button
+        btn_photo = tk.Button(self,text = "Take Photo", command =lambda *args: take_photo() ,height = 4, width = 14, font=('LARGE_FONT',15)).place(x = 1500, y = 800)
 
 
 # class Page2(tk.Frame):  # Secondary page of the GUI (with specifications and instructions)
@@ -390,10 +421,11 @@ def dashboard():
     global pub2
     global pub3
     global pub4
+    global pub_trigger
 
     rospy.init_node('dashboard', anonymous=True)
     gui = OrisDashboard()
-    gui.geometry("1115x630")
+    gui.geometry("1920x1280")
     #ani = animation.FuncAnimation(f, animate, interval=1000)    # Update period in ms - corresponds to the minimum refresh frequency of the point cloud
     rospy.Subscriber("Coordinates", Point, animate)     # tópico Spot_Coordinates
     #rospy.Subscriber("Coordinates", PoseArray, mindistance)
@@ -401,6 +433,7 @@ def dashboard():
     #pub2 = rospy.Publisher('numberOfPoints', Int8, queue_size=10)
     pub3 = rospy.Publisher('Stop', Int8, queue_size=10)
     pub4 = rospy.Publisher('Quit', Int8, queue_size=10)
+    pub_trigger = rospy.Publisher('take_photo', Int8 ,queue_size = 10)
 
 	
             

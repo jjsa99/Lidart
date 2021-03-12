@@ -68,7 +68,7 @@ def initializeLaser():
 			ser1.write(b'\x24\x06\xB0\x01\x23')					# changing the laser delay time to 0x01B0 -> 35us -> little endian 
 			ser1.write(b'\x24\x07\x53\x02\x23')					# changing the laser width to 0x0253 -> 49.5us -> little endian 
 			ser1.write(b'\x24\x08\xE0\x01\x23')					# changing the camera delay time to 0x01E0 -> 40us -> little endian 
-			ser1.write(b'\x24\x09\x78\xEA\x23')					# changing the camera width to 0x04B0 -> 100us -> little endian -> \x78\xEA\ 
+			ser1.write(b'\x24\x09\xB0\x04\x23')					# changing the camera width to 0x04B0 -> 100us -> little endian -> \x78\xEA\ 
 			rospy.loginfo("Time changed")
 			time.sleep(0.5)
             
@@ -95,7 +95,7 @@ def initializeMirror():
 
 	global Scuti1
 
-	PORT = "/dev/ttyUSB1"
+	PORT = "/dev/ttyUSB0"
 
 	#Configures the serial port
 	Scuti1 = Scuti(port=PORT,timeout = 0.2)
@@ -112,7 +112,7 @@ def initializeMirror():
 def trigger():
 
 	global ser1
-
+	global traffic
 	print("trigger in")
 	start = time.time()					# measuring the time the trigger takes
 	if ser1.isOpen():
@@ -120,9 +120,9 @@ def trigger():
 		try:
 			ser1.flushInput() #flush input buffer, discarding all its contents
 			ser1.flushOutput()#flush output buffer, aborting current output and discard all that is in buffer
-			ser1.write(b'\x24\x01\x00\x00\x23')
-			rospy.loginfo("triggered")
-			time.sleep(0.5)
+			traffic = ser1.write(b'\x24\x01\x00\x00\x23')
+			#print("traffic " ,traffic)
+			#time.sleep(0.5)
             
 			while True:
 				response = ser1.readline()
@@ -138,6 +138,8 @@ def trigger():
 
 	else:
 		print ("cannot open serial port ")
+
+	traffic = 1
 	end = time.time()
 	print(end-start)
 	print("trigger out")
@@ -201,6 +203,7 @@ def call_Photo_Ready2(data):
 
 def changePosition(position):
 	global Scuti1
+	global traffic
 
 	# angleA = "angleA = {} deg\r\n".format(position[0])
 	rospy.loginfo("position A: %d",position[0])
@@ -217,12 +220,25 @@ def changePosition(position):
 	Scuti1.ser.write(angle2.encode())
 
 	print("changing position")
-    
-	time.sleep(0.5)													# this sleep is very important 
-
 	
+	while(Scuti1.ser.read(4) != 'OK\r\n'.encode()):
+		print(Scuti1.ser.read(4))
+
+		
+	rospy.sleep(0.5)													# this sleep is very important 
+
 	trigger()
     
+	return 1
+
+def call_trigger(data):
+	
+	rospy.loginfo("taking the trigger")
+
+	rospy.sleep(0.5)
+
+	trigger()
+
 	return 1
 
 
@@ -232,6 +248,8 @@ def Mirror_Arduino():
 	rospy.Subscriber("Mirror_Pattern", Float32MultiArray, call_Mirror_Pattern)
 	rospy.Subscriber("Stop", Int8, call_Stop)
 	rospy.Subscriber("Quit", Int8, call_Quit)
+	rospy.Subscriber("take_photo", Int8, call_trigger)
+
 	# rospy.Subscriber("image_raw_left", Int8, call_Photo_Ready1)
 	# rospy.Subscriber("image_raw_right", Int8, call_Photo_Ready2)
 	#pub1=rospy.Publisher('Activate_Trigger', Int8, queue_size=10)

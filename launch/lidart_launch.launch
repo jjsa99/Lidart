@@ -1,0 +1,11 @@
+<launch>
+
+<!-- Photo processing node--> 
+<node pkg="lidart_workspace" type="PPUnit" name="photo_processing_node"/>
+<!-- Mirror and Laser node-->
+<node pkg="lidart_workspace" type="new_mirrorArduino.py" name="mirror_laser_node" />
+<!-- Dashboard node-->
+<node pkg="lidart_workspace" type="dashboard.py" name="dashboard_node" />
+
+
+</launch>
