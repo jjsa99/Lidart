@@ -42,6 +42,10 @@ int c_r = 0;
 std::vector <geometry_msgs::Point> coord;
 // geometry_msgs::Pose point;
 geometry_msgs::Point point;
+geometry_msgs::Point point_left;
+geometry_msgs::Point point_right;
+
+
 
 int findCentroid(uint8_t *data, double centroidCoord[]);
 
@@ -74,13 +78,11 @@ int findSpotCoordinates(double cRightPh[2],double cLeftPh[2]) {
      cout << "X:" << x << endl;
      cout << "Y:" << y << endl;
 
-    // geometry_msgs::Pose point;
+    point_left.x = CLeftPh[0]
+    point_left.y = CLeftPh[1]
 
-
-
-    // point.position.x = x;
-    // point.position.y = y;
-    // point.position.z = z;
+    point_right.x = CRightPh[0]
+    point_right.y = CRightPh[1]
 
     point.x = x;
     point.y = y;
@@ -90,6 +92,7 @@ int findSpotCoordinates(double cRightPh[2],double cLeftPh[2]) {
     // // spotCoord.position.x = x;
     // // spotCoord.position.y = y;
     // // spotCoord.position.z = z;
+
 
     coord.push_back(point);
 
@@ -190,6 +193,9 @@ int volatile a = 0;
   // ROS_INFO("Subscribed the subQuit topic");
   // publishes the coordinates
   ros::Publisher pub = nh.advertise<geometry_msgs::Point>("Coordinates",10);
+  ros::Publisher pub_left = nh.advertise<geometry_msgs::Point>("Coordinates_left",10);
+  ros::Publisher pub_right = nh.advertise<geometry_msgs::Point>("Coordinates_right",10);
+
   // ROS_INFO("Publishing the coordinates");
   // subscribes the size of the array
   ros::Subscriber sub = nh.subscribe("size",100,sizeCallBack);
