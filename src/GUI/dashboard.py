@@ -19,6 +19,7 @@ from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import *
 import matplotlib.pyplot as plt
+import cv2                      # used to change the color channel in the photo
 #from tkFont import Font
 
 
@@ -37,22 +38,37 @@ tmpyList = []
 N = 0
 
 # Point cloud plot
-f = plt.figure(figsize=(5.28,3.54))
+f = plt.figure(figsize=(9,6.5))
 a = plt.subplot()
 plt.ion()
 
 # left plot
-f_left = plt.figure(figsize = (5,5))
-a_left = f_left.add_subplot(111)
+f_left = plt.figure(figsize = (5.5,3))
+a_left = plt.subplot()
 
 # right plot
-f_right = plt.figure(figsize = (5,5))
-a_right = f_right.add_subplot(111)
+f_right = plt.figure(figsize = (5.5,3))
+a_right = plt.subplot()
 
 
 
 
 def change_state_start():
+
+    # loads the initial images taken with lights on 
+    path_left = '/home/lidart/init_photos/left/left_init.png'
+    path_right = '/home/lidart/init_photos/right/right_init.png'
+    # left 
+    img_left = plt.imread(path_left)
+    #opencv uses BGR and matplotlib uses RGB
+    img_left = cv2.cvtColor(img_left, cv2.COLOR_BGR2RGB)
+    a_left.imshow(img_left)
+
+    # right
+    img_right = plt.imread(path_right)
+    img_right = cv2.cvtColor(img_right, cv2.COLOR_BGR2RGB)
+    a_right.imshow(img_right)
+
 
     start_not_stop = 1
     # Deactivate entries when the system is working
@@ -127,7 +143,7 @@ def change_state_start():
     del yList[:]
     del zList[:]
     
-    del tmpxList[:]
+    del tmpxList[:] 
     del tmpyList[:]
 
     # xList.clear()									    ###ESTAS LINHAS VÃO FAZER MAIS SENTIDO DEPOIS DE VEREM A FUNÇÃO ANIMATE. MAS ISTO ESSENCIALMENTE
@@ -153,14 +169,10 @@ def change_state_stop():
 def animate(i):                                         # Pointcloud update function
 
     global xList, yList, zList, N
-    global tmpxList, tmpyList
  
     xList.append(i.x)
     yList.append(i.y)
     zList.append(i.z)
-    
-    tmpxList.append(i.x)
-    tmpyList.append(i.y)
 
     rospy.loginfo(xList)
     rospy.loginfo(yList)
@@ -183,40 +195,10 @@ def animate(i):                                         # Pointcloud update func
         rospy.loginfo('Point Cloud')    
          
        
-        
-        #Unused lines of code
-        #plt.draw_if_interactive()
-        #plt.draw()
-        #a.axis('off')
-        #a.set(xlim=(0, 1), ylim=(-0.4, 0.4))
-        #a.axis('image')
-        #a.grid(False)
-        #a.scatter(xList, yList, zList, c = zList, cmap = 'viridis_r', linewidth = 1)    # Point cloud plot in the GUI
-        #rospy.loginfo(xList)
-        #rospy.loginfo(yList)
-        #rospy.loginfo(zList)
-        #plt.clf()
-        #a.clear()
 
 def take_photo():
 
     pub_trigger.publish(1)
-    path_left = '/home/lidart/init_photos/left/left_init.png'
-    path_right = '/home/lidart/init_photos/right/right_init.png'
-
-    while(os.path.isfile(path_left) == 0) and (os.path.isfile(path_right) == 0 ):
-        rospy.loginfo("1")
-        rospy.sleep(1)
-
-    rospy.sleep(2)
-    rospy.loginfo("2")
-    # left 
-    img_left = plt.imread(path_left)
-    a_left.imshow(img_left)
-
-    # right
-    img_right = plt.imread(path_right)
-    a_right.imshow(img_right)
     
 
 
@@ -273,20 +255,22 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
 
 
         # Point cloud
+        point_label = tk.Label(self, text = "Point Cloud View", font = ('LARGE_FONT',14)).place(x = 50, y = 55)
         canvas = FigureCanvasTkAgg(f, self)     # bring the Pointcloud canvas forward
         canvas.draw()
-        canvas.get_tk_widget().place(x = 1200, y = 100)
-        #canvas_label = Label(self, text = "[pointcloud of the scene produced by ORIS]", font=('LARGE_FONT',10)).place(x = 1200, y = 900)
+        canvas.get_tk_widget().place(x = 50, y = 90)
 
         # left
+        left_label = tk.Label(self, text = "Left Camera View", font = ('LARGE_FONT',14)).place(x = 1200, y = 55)
         canvas_left = FigureCanvasTkAgg(f_left,self)
         canvas_left.draw()
-        canvas_left.get_tk_widget().place(x = 50,y = 100)
+        canvas_left.get_tk_widget().place(x = 1200,y = 90)
 
         # right
-        canvas_left = FigureCanvasTkAgg(f_right,self)
-        canvas_left.draw()
-        canvas_left.get_tk_widget().place(x = 600,y = 100)
+        right_label = tk.Label(self, text = "Right Camera View", font = ('LARGE_FONT',14)).place(x = 1200, y = 410)
+        canvas_right = FigureCanvasTkAgg(f_right,self)
+        canvas_right.draw()
+        canvas_right.get_tk_widget().place(x = 1200,y = 440)
      
         global opFoVh, opFoVv, opsteph, opstepv
 
@@ -295,124 +279,34 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
 
         # Horizontal FoV
         lFovh = Label(self, text = "Horizontal FoV: ", font=('LARGE_FONT',12)).place(x = 50, y = 810)
-        opFoVh = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 200, y = 810)
-        
+        opFoVh = Entry(self, font=('LARGE_FONT',15),state='normal')
+        opFoVh.place(x = 200, y = 810)
+
         # Vertical FoV
         lFovv = Label(self, text = "Vertical FoV: ", font=('LARGE_FONT',12)).place(x = 50, y = 850)
-        opFoVv = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 200, y = 850)
+        opFoVv = Entry(self, font=('LARGE_FONT',15),state='normal')
+        opFoVv.place(x = 200, y = 850)
 
         # Horizontal step
         lsteph = Label(self, text = "Horizontal step: ", font=('LARGE_FONT',12)).place(x = 550, y = 810)
-        opsteph = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 700, y = 810)
+        opsteph = Entry(self, font=('LARGE_FONT',15),state='normal')
+        opsteph.place(x = 700, y = 810)
 
         # Vertical step
         lstepv = Label(self, text = "Vertical step: ", font=('LARGE_FONT',12)).place(x = 550, y = 850)
-        opstepv = Entry(self, font=('LARGE_FONT',15),state='normal').place(x = 700, y = 850)
+        opstepv = Entry(self, font=('LARGE_FONT',15),state='normal')
+        opstepv.place(x = 700, y = 850)
 
         # Run button
-        button_run = tk.Button(self,text="RUN",command=lambda *args: change_state_start(), height = 4, width = 14, font=('LARGE_FONT',15)).place(x = 1000, y = 800)
+        button_run = tk.Button(self,text="RUN",command= lambda *args: change_state_start(), height = 4, width = 14, font=('LARGE_FONT',15))
+        button_run.place(x = 1000, y = 800)
         # Quit button
-        button_quit = tk.Button(self,text="QUIT",command=lambda: controller.quit_function(), height = 4, width = 14, font=('LARGE_FONT',15)).place(x = 1250, y = 800)
+        button_quit = tk.Button(self,text="QUIT",command=lambda: controller.quit_function(), height = 4, width = 14, font=('LARGE_FONT',15))
+        button_quit.place(x = 1250, y = 800)
         #Take Photo button
-        btn_photo = tk.Button(self,text = "Take Photo", command =lambda *args: take_photo() ,height = 4, width = 14, font=('LARGE_FONT',15)).place(x = 1500, y = 800)
+        btn_photo = tk.Button(self,text = "Take Photo", command =lambda *args: take_photo() ,height = 4, width = 14, font=('LARGE_FONT',15))
+        btn_photo.place(x = 1500, y = 800)
 
-
-# class Page2(tk.Frame):  # Secondary page of the GUI (with specifications and instructions)
-
-#     def __init__(self, parent, controller):
-#         tk.Frame.__init__(self, parent)
-
-#         path = os.path.dirname(os.path.abspath(__file__)) # get the current file's directory pat
-
-#         # GUI title
-#         title = Label(self, text = "LiDART - DASHBOARD", font=('LARGE_FONT',18))
-#         title.place(x = 450, y = 12)
-
-#         # How to use the dashboard -title
-#         instr_title = Label(self, text = "How to use the LiDART's dashboard:", font=('LARGE_FONT',12))
-#         instr_title.place(x = 18, y = 47)
-
-#         # Input parameters
-#         input_title = Label(self, text = "1 - Define the input parameters:", font=('LARGE_FONT',11))
-#         input_title.place(x = 24, y = 72)
-#         input_intro = Label(self, text = "The input parameters the user can define are the horizontal and vertical field of view", font=('LARGE_FONT',9))
-#         input_intro.place(x = 24, y = 97)
-#         input_intro2 = Label(self, text = "considered by the system and the angular horizontal and vertical step used to scan", font=('LARGE_FONT',9))
-#         input_intro2.place(x = 24, y = 115)
-#         input_intro3 = Label(self, text = "the considered fiel of view. The way those parameters are considered, in practice,", font=('LARGE_FONT',9))
-#         input_intro3.place(x = 24, y = 133)
-#         input_intro4 = Label(self, text = "to configure the system are shown in the figure below.", font=('LARGE_FONT',9))
-#         input_intro4.place(x = 24, y = 151)
-
-#         # load_figure1 = PIL.Image.open(path+'/figure_1.jpg')
-#         # new_figure1 = load_figure1.resize((414, 237))
-#         # render_figure1 = ImageTk.PhotoImage(new_figure1)
-#         # figure1 = Label(self, image = render_figure1)
-#         # figure1.image = render_figure1
-#         # figure1.place(x = 76, y = 176)
-
-#         input_intro4 = Label(self, text = "The user must choose both the FOVs and both the steps, according to the next range", font=('LARGE_FONT',9))
-#         input_intro4.place(x = 24, y = 423)
-#         input_intro5 = Label(self, text = "and specifications:", font=('LARGE_FONT',9))
-#         input_intro5.place(x = 24, y = 441)
-#         input_FOV = Label(self, text = "a) 0.0003 degrees <= FOV <= 45 degrees;", font=('LARGE_FONT',9))
-#         input_FOV.place(x = 48, y = 465)
-#         input_step = Label(self, text = "b) 0.0003 degrees <= angular step <= FOV selected;", font=('LARGE_FONT',9))
-#         input_step.place(x = 48, y = 483)
-#         input_step_FOV = Label(self, text = "c) the FOV must be a complete multiple of the respective angular step.", font=('LARGE_FONT',9))
-#         input_step_FOV.place(x = 48, y = 501)
-#         input_adapt = Label(self, text = "If the specifications above are not fulfilled, the system will adjust the parameters in", font=('LARGE_FONT',9))
-#         input_adapt.place(x = 24, y = 531)
-#         input_adapt2 = Label(self, text = "order to fulfill them. This may lead to smaller FOVs and a behavior of the system that", font=('LARGE_FONT',9))
-#         input_adapt2.place(x = 24, y = 549)
-#         input_adapt3 = Label(self, text = "was not the expected by the user. That is why it is highly recommended to obey those", font=('LARGE_FONT',9))
-#         input_adapt3.place(x = 24, y = 567)
-#         input_adapt4 = Label(self, text = "specifications. Although the system will produceresults anyway, these may not be the", font=('LARGE_FONT',9))
-#         input_adapt4.place(x = 24, y = 585)
-#         input_adapt5 = Label(self, text = "needed and expected ones.", font=('LARGE_FONT',9))
-#         input_adapt5.place(x = 24, y = 603)
-
-#         # Control buttons
-#         buttons_title = Label(self, text = "2 - Use the control buttons:", font=('LARGE_FONT',11))
-#         buttons_title.place(x = 582, y = 72)
-#         buttons_RUN = Label(self, text = "RUN: once the input parameters are all defined, the RUN button is used to make", font=('LARGE_FONT',9))
-#         buttons_RUN.place(x = 588, y = 97)
-#         buttons_RUN2 = Label(self, text = "the system to start producing results, accordingly to those parameters.", font=('LARGE_FONT',9))
-#         buttons_RUN2.place(x = 588, y = 115)
-#         buttons_STOP = Label(self, text = "STOP: when the system is running, this button can be used to pause/freeze the", font=('LARGE_FONT',9))
-#         buttons_STOP.place(x = 588, y = 139)
-#         buttons_STOP2 = Label(self, text = "system, so the user can change some input parameters and then re-start the", font=('LARGE_FONT',9))
-#         buttons_STOP2.place(x = 588, y = 157)
-#         buttons_STOP3 = Label(self, text = "system again with those new parameters, by pushing the RUN button again.", font=('LARGE_FONT',9))
-#         buttons_STOP3.place(x = 588, y = 175)
-#         buttons_QUIT = Label(self, text = "QUIT: this button is used to stop all the system and exit the dashboard window.", font=('LARGE_FONT',9))
-#         buttons_QUIT.place(x = 588, y = 199)
-
-#         # Output
-#         output_title = Label(self, text = "System's output:", font=('LARGE_FONT',12))
-#         output_title.place(x = 576, y = 229)
-#         output_text = Label(self, text = "Besides the point cloud presented to the user in the dashboard, the system also", font=('LARGE_FONT',9))
-#         output_text.place(x = 588, y = 254)
-#         output_text2 = Label(self, text = "save the points' coordinates, on 3 .txt files, on the machine running the system.", font=('LARGE_FONT',9))
-#         output_text2.place(x = 588, y = 272)
-#         output_text3 = Label(self, text = "These files are named 'x_LiDART.txt', 'y_LiDART.txt' and 'z_LiDART.txt' and the", font=('LARGE_FONT',9))
-#         output_text3.place(x = 588, y = 290)
-#         output_text4 = Label(self, text = "coordinates are defined in the axel system of the figure below (the same system", font=('LARGE_FONT',9))
-#         output_text4.place(x = 588, y = 308)
-#         output_text5 = Label(self, text = "considered to construct the point cloud shown in the dashboard).", font=('LARGE_FONT',9))
-#         output_text5.place(x = 588, y = 326)
-
-#         # load_figure2 = PIL.Image.open(path+'/figure_2.jpg')
-#         # new_figure2 = load_figure2.resize((259, 230))
-#         # render_figure2 = ImageTk.PhotoImage(new_figure2)
-#         # figure2 = Label(self, image = render_figure2)
-#         # figure2.image = render_figure2
-#         # figure2.place(x = 718, y = 351)
-
-#         # Push button to go back to the main page
-#         button_RunPage = tk.Button(self,text="Go back to the Dashboard",
-#                             command=lambda: controller.show_frame(RunPage), height = 0, width = 57, font=('LARGE_FONT',10))
-#         button_RunPage.place(x = 608, y = 590)
 
 
 # Execution of the gui
