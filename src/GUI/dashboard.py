@@ -28,12 +28,16 @@ LARGE_FONT=("Verdana",14)
 style.use("dark_background")
 
 start_not_stop = 0
-xList = []					#Arrays onde vão ser guardados os pontos que vêm do Processing Unit
+#array where the coordinates of the Point cloud will be stored
+xList = []					
 yList = []
 zList = []
-
-tmpxList = []
-tmpyList = []
+# array to store the coordinates on the left photo
+xList_L = []
+yList_L = []
+# array to store the coordinates on the right photo
+xList_R = []
+yList_R = []
 
 N = 0
 
@@ -44,7 +48,7 @@ plt.ion()
 
 # left plot
 f_left = plt.figure(figsize = (5.5,3))
-a_left = plt.subplot()
+a_left= plt.subplot()
 
 # right plot
 f_right = plt.figure(figsize = (5.5,3))
@@ -143,8 +147,6 @@ def change_state_start():
     del yList[:]
     del zList[:]
     
-    del tmpxList[:] 
-    del tmpyList[:]
 
     # xList.clear()									    ###ESTAS LINHAS VÃO FAZER MAIS SENTIDO DEPOIS DE VEREM A FUNÇÃO ANIMATE. MAS ISTO ESSENCIALMENTE
     # yList.clear()										###É A DECLARAÇÃO DE ARRAYS GLOBAIS PARA GUARDAREM OS PONTOS QUE VÃO RECEBENDO DA PROCESSING UNIT
@@ -174,9 +176,9 @@ def animate(i):                                         # Pointcloud update func
     yList.append(i.y)
     zList.append(i.z)
 
-    rospy.loginfo(xList)
-    rospy.loginfo(yList)
-    rospy.loginfo(zList)
+    #rospy.loginfo(xList)
+    #rospy.loginfo(yList)
+    #rospy.loginfo(zList)
 
     
     rospy.loginfo(len(xList))
@@ -192,8 +194,47 @@ def animate(i):                                         # Pointcloud update func
         del yList[:]
         del zList[:]
         		
-        rospy.loginfo('Point Cloud')    
-         
+        rospy.loginfo('Point Cloud') 
+
+def animate_left(i):
+    
+    global xList_L, yList_L, N
+
+    xList_L.append(i.x)
+    yList_L.append(i.y)
+
+    #rospy.loginfo(xList_L)
+    #rospy.loginfo(yList_L)
+
+    if(len(xList_L) == N):
+
+        a_left = f_left.add_subplot(111)
+        a_left.scatter(xList_L,yList_L, linewidth = 1)
+        f_left.canvas_left.draw_idle()
+
+        del xList_L[:]
+        del yList_L[:]
+
+def animate_right(i):
+    
+    global xList_R, yList_R, N
+
+    xList_R.append(i.x)
+    yList_R.append(i.y)
+
+    #rospy.loginfo(xList_L)
+    #rospy.loginfo(yList_L)
+
+    if(len(xList_R) == N):
+
+        a_right = f_right.add_subplot(111)
+        a_right.scatter(xList_R,yList_R, linewidth = 1)
+        f_right.canvas_right.draw_idle()
+
+        del xList_R[:]
+        del yList_R[:]
+
+                  
        
 
 def take_photo():
@@ -242,17 +283,6 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
 
         # GUI title
         title = Label(self, text = "LiDART - DASHBOARD", font=('LARGE_FONT',18)).place(x = 800, y = 12)
-
-        # #Foto of the physical scenario, captured by the left camera
-        # load_photo = PIL.Image.open(path+"/normal_photo.bmp")                         # ESTA IMAGEM TAMBÉM DEVE SER LIDA DO NÓ ROS
-        # new_photo = load_photo.resize((567, 354))
-        # render_photo = ImageTk.PhotoImage(new_photo)
-        # photo = Label(self, image = render_photo)
-        # photo.image = render_photo
-        # photo.place(x = 6, y = 54)
-        # photo_label = Label(self, text = "[photo of the pyshical scene captured by the left camera]", font=('LARGE_FONT',10))
-        # photo_label.place(x = 102, y = 417)
-
 
         # Point cloud
         point_label = tk.Label(self, text = "Point Cloud View", font = ('LARGE_FONT',14)).place(x = 50, y = 55)
@@ -322,6 +352,8 @@ def dashboard():
     gui.geometry("1920x1280")
     #ani = animation.FuncAnimation(f, animate, interval=1000)    # Update period in ms - corresponds to the minimum refresh frequency of the point cloud
     rospy.Subscriber("Coordinates", Point, animate)     # tópico Spot_Coordinates
+    rospy.Subscriber("Coordinates_left",Point,animate_left)
+    rospy.Subscriber("Coordinates_right",Point,animate_right)
     #rospy.Subscriber("Coordinates", PoseArray, mindistance)
     pub1 = rospy.Publisher('Mirror_Pattern', Float32MultiArray, queue_size=10)
     #pub2 = rospy.Publisher('numberOfPoints', Int8, queue_size=10)
