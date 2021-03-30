@@ -55,8 +55,8 @@ f_right = plt.figure(figsize = (5.5,3))
 a_right = plt.subplot()
 
 
-
-
+# this function has the job of collecting the photos taken initially as display them in the GUI
+# It receives all the inputs given in the GUI by the user and sends them to the mirror_laser.py
 def change_state_start():
 
     # loads the initial images taken with lights on 
@@ -80,8 +80,10 @@ def change_state_start():
     opFoVv.config(state='disabled')
     opsteph.config(state='disabled')
     opstepv.config(state='disabled')
+    opOSH.config(state='disabled')
+    opOSV.config(state='disabled')
 
-    global FoVh, FoVv, stepv, steph, N
+    global FoVh, FoVv, stepv, steph, offV, offH, N
 
     FoVh = int(10000*float(opFoVh.get()))
     if FoVh > 450000:                                   # If the input horizontal field of view is bigger than the maximum (45 degress), then the maximum is assumed
@@ -96,16 +98,16 @@ def change_state_start():
         FoVv = 3
 
     steph = int(10000*float(opsteph.get()))
-    if steph > FoVh:                                    # If the input horizontal step is bigger than the maximum (the horizontal FoV), then the maximum is assumed
-        steph = FoVh
     if steph < 3:                                       # If the input horizontal step is less than the minimum achievable by the system (), then the minimum is assumed
         steph = 3
 
     stepv = int(10000*float(opstepv.get()))
-    if stepv > FoVv:                                    # If the input vertical step is bigger than the maximum (the vertical FoV), then the maximum is assumed
-        stepv = FoVv
     if stepv < 3:                                       # If the input vertical step is less than the minimum achievable by the system (), then the minimum is assumed
         stepv = 3
+    
+    offV = float(opOSV.get())
+
+    offH = float(opOSH.get())
 
     if (2*FoVh % steph) != 0:
         FoVh = (2*FoVh - (2*FoVh % steph))/2
@@ -117,29 +119,21 @@ def change_state_start():
     steph = float(steph)/10000
     stepv = float(stepv)/10000
 
+# optional
+    print("Fovh = ",FoVh)
+    print("FovV = ",FoVv)
+    print("stepv = ",stepv)
+    print("steph = ",steph)
+    print("offV = ",offV)
+    print("offH = ",offH)
+    
+
     N = ((2*FoVh/steph)+1)*((2*FoVv/stepv)+1)          # Calculation of the total number of points in the point cloud
-    #N = 63	                                            # Total number of points in the point cloud for the artificial photos
-    #N = 10
-
-    # print(start_not_stop)                               # ROS - É NESTE SÍTIO QUE, EM VEZ DE PRINTS, DEVES MANDAR AQUELES VALORES PARA O EXTERIOR
-    # print(FoVh)                                         #     - start_not_stop e N SAO INTEIROS; - FoVh, FoVv, steph E stepv SÃO FLOATS
-    # print(FoVv)
-    # print(steph)
-    # print(stepv)
-    # print(N)
-
+    
     param = Float32MultiArray()
-    param.data = [FoVh,FoVv,steph,stepv]
+    param.data = [FoVh,FoVv,steph,stepv,offV,offH]
     pub1.publish(param)
-    #pub2.publish(N)
-	
-    # PARCEIRO, LINHAS ABAIXO:
-    #a.scatter(tmpxList, tmpyList, c = '#000000', cmap = 'viridis_r', linewidth = 10)
-	# Penso que aqui não devas fazer scatter, mas apenas declarar a figura
-    # Assim: 
-    #f = Figure(figsize=(5.28,3.54))                           # Pointcloud figure creation
-    #a = f.add_subplot(111) # 111, projection='3d'
-    # talvez seja por causa desta linha que aparece uma segunda point cloud
+
 
     global xList, yList, zList 
 
@@ -160,6 +154,8 @@ def change_state_stop():
     opFoVv.config(state='normal')
     opsteph.config(state='normal')
     opstepv.config(state='normal')
+    opOSH.config(state='normal')
+    opOSV.config(state='normal')
 
     # print(start_not_stop)                               # ROS - AQUI TAMBEM DEVES PUBLICAR O start_not_stop NO NÓ DE ROS (APENAS ESTE SINAL, NESTE CASO)
 
@@ -182,6 +178,7 @@ def animate(i):                                         # Pointcloud update func
 
     
     rospy.loginfo(len(xList))
+    rospy.loginfo("N animate: %d",N)
 
     if(len(xList) == N):    
         
@@ -205,6 +202,8 @@ def animate_left(i):
 
     #rospy.loginfo(xList_L)
     #rospy.loginfo(yList_L)
+    rospy.loginfo("N aminate_left: %d",N)
+
 
     if(len(xList_L) == N):
 
@@ -218,6 +217,8 @@ def animate_left(i):
 def animate_right(i):
     
     global xList_R, yList_R, N
+    rospy.loginfo("N animate right: %d",N)
+
 
     xList_R.append(i.x)
     yList_R.append(i.y)
@@ -302,7 +303,7 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
         canvas_right.draw()
         canvas_right.get_tk_widget().place(x = 1200,y = 440)
      
-        global opFoVh, opFoVv, opsteph, opstepv
+        global opFoVh, opFoVv, opsteph, opstepv, opOSH, opOSV
 
         # Laser Pattern choice (Input Parameters)
         mirrortext = Label(self, text = "Mirror pattern settings:", font=('LARGE_FONT',15)).place(x = 50, y = 750) # position of the label
@@ -326,6 +327,15 @@ class RunPage(tk.Frame):    # Main page of the GUI (system's dashboard)
         lstepv = Label(self, text = "Vertical step: ", font=('LARGE_FONT',12)).place(x = 550, y = 850)
         opstepv = Entry(self, font=('LARGE_FONT',15),state='normal')
         opstepv.place(x = 700, y = 850)
+        # vertical offset
+        OSvert =Label(self, text = "Vertical Offset: ", font=('LARGE_FONT',12)).place(x = 550, y = 890 )
+        opOSV = Entry(self, font=('LARGE_FONT',15),state='normal')
+        opOSV.place(x = 700, y = 890)
+        # horizontal offset
+        OShor =Label(self, text = "Horizontal Offset: ", font=('LARGE_FONT',12)).place(x = 50, y = 890)
+        opOSH = Entry(self, font=('LARGE_FONT',15),state='normal')
+        opOSH.place(x = 200, y = 890)
+
 
         # Run button
         button_run = tk.Button(self,text="RUN",command= lambda *args: change_state_start(), height = 4, width = 14, font=('LARGE_FONT',15))
