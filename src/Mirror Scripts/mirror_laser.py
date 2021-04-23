@@ -306,10 +306,12 @@ def Mirror_Arduino():
 		if init==0 and ready==1 and stop==0:     # ready=1, supõe que no inicio as cameras estão prontas para tirar foto
 			if start==1 and ready==1:            #start=1, recebeu novos parametros e começa de novo
 				rospy.loginfo("received new parameters")
-				for x in arange(negFOVH,FOVvert+1.0,stephor):
+				for x in arange(negFOVH,FOVhor+stephor,stephor):
+					x = round(x,3)
 					print(x)
 					if(yy <=0):
-						for y in arange(negFOVV,(FOVvert+1.0),stepvert):
+						for y in arange(negFOVV,(FOVvert+stepvert),stepvert):
+							y = round(y,3)
 							position=[x,y]
 							changePosition(position)			# changed the mirror position and activated the trigger
 							yy = y
@@ -327,7 +329,8 @@ def Mirror_Arduino():
 								ready=0                 #cameras não estão prontas para uma nova foto
 
 					elif yy >0:
-						for y in arange(FOVvert,(negFOVV-1.0),negstepV):
+						for y in arange(FOVvert,(negFOVV+negstepV),negstepV):
+							y = round(y,3)
 							position=[x,y]
 							changePosition(position)			# changed the mirror position and activated the trigger
 							yy = y
