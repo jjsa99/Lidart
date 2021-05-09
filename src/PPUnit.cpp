@@ -1,7 +1,10 @@
-////////////////
-// alteraçoes nas linhas 171, 172, 173 e 189, 190
-////////////////
+/**
+ * \file: main.c
+ */
 
+/**
+ * \brief 
+ */
 
 // ROS
 #include <ros/ros.h>
