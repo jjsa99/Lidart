@@ -1,0 +1,2 @@
+lidart_workspace:ueye_cam
+-DCATKIN_DEVEL_PREFIX=/home/lidart/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/lidart/catkin_ws/install -G Unix Makefiles
