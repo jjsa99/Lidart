@@ -215,6 +215,4 @@ target_link_libraries( PPUnit ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 add_executable(camera_subscriber src/camera_subscriber_test.cpp)
 target_link_libraries( camera_subscriber ${catkin_LIBRARIES})
 
-add_executable(centroid src/centroid.cpp)
-target_link_libraries( centroid ${catkin_LIBRARIES})
 

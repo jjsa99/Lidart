@@ -6,8 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/lidart/catkin_ws/src/lidart_workspace/src/Centroid.h
-
 /home/lidart/catkin_ws/src/lidart_workspace/src/PPUnit.cpp
 ros/ros.h
 -
@@ -45,8 +43,6 @@ geometry_msgs/PoseArray.h
 /home/lidart/catkin_ws/src/lidart_workspace/src/geometry_msgs/PoseArray.h
 geometry_msgs/Pose.h
 /home/lidart/catkin_ws/src/lidart_workspace/src/geometry_msgs/Pose.h
-Centroid.h
-/home/lidart/catkin_ws/src/lidart_workspace/src/Centroid.h
 
 /opt/ros/noetic/include/cv_bridge/cv_bridge.h
 sensor_msgs/Image.h
