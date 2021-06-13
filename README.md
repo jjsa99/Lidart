@@ -34,6 +34,8 @@ In the GUI, the user inputs:
 - Vertical offset
 
 (The last 2 can be set to 0)
+
+
 The cameras and the laser are sincronzed by a trigger. When pressed, the laser emits a laser spot that is captured by the cameras. The mirror will redirect the laser spot to the different coordinates.
 The photos will be collected and processed in the PPUnit.cpp that will output the an Z,Y,Z coordinate.
 
