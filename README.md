@@ -41,13 +41,30 @@ The photos will be collected and processed in the PPUnit.cpp that will output th
 
 ### Installation
 Since the setup was run in ROS, I used ROS noetic.
+It is necessary to install OpenCV https://opencv.org/ .
+
 The cameras used come with proprietary software in order to connect them to the computer. I found a very usefull ROS package named ueye_cam from https://wiki.ros.org/ueye_cam . It creates the nodes for the cameras when connected.
 ```bash
 git clone https://github.com/anqixu/ueye_cam.git
 ```
-
 From there, we need to connect the mirror to the linux environment.
 Originally, the software provived by the Optotune isn't compatible with LINUX.
 With that, it was necessary to install the same libraries provided by the manufacture, but in LINUX, in this case:
 - numpy 1.9.1
 - pyserial 2.7
+
+The simpler way to install the code on your computer is to setup a ROS environment using https://wiki.ros.org/ROS/Installation
+Then, after that, create a package using
+``` bash
+catkin_create_pkg nameofthepackage std_msgs rospy roscpp sensor_msgs image_transport cv_bridge
+```
+Then import the folders inside the git /src to the src created in the ROS package.
+Finally add to the CMakeList.txt
+``` bash
+add_executable (PPUnit src/PPUnit.cpp)
+target_link_libaries(PPUnit ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable (camera_subscriber src/camera_subscriber_test.cpp)
+target_link_libaries(PPUnit ${catkin_LIBRARIES})
+
+```
