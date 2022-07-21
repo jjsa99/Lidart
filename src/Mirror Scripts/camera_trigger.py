@@ -38,15 +38,14 @@ def trigger():
 	global ser1
 	global traffic
 	print("trigger in")
-	start = time.time()					# measuring the time the trigger takes
+	start = time.time()					                        # measuring the time the trigger takes
 	if ser1.isOpen():
     
 		try:
-			ser1.flushInput() #flush input buffer, discarding all its contents
-			ser1.flushOutput()#flush output buffer, aborting current output and discard all that is in buffer
+			ser1.flushInput()                                   #flush input buffer, discarding all its contents
+        ser1.flushOutput()                                      #flush output buffer, aborting current output and discard all that is in buffer
 			traffic = ser1.write(b'\x24\x01\x00\x00\x23')
-			#print("traffic " ,traffic)
-			#time.sleep(0.5)
+
             
 			while True:
 				response = ser1.readline()
@@ -138,9 +137,9 @@ def initialize_triggering():
 	#ser1.port = "/dev/ttyUSB0"
 	ser1.port = "/dev/ttyACM1"
 	ser1.baudrate = 9600
-	ser1.bytesize = serial.EIGHTBITS #number of bits per bytes
-	ser1.parity = serial.PARITY_NONE #set parity check: no parity
-	ser1.stopbits = serial.STOPBITS_ONE #number of stop bits
+	ser1.bytesize = serial.EIGHTBITS        #number of bits per bytes
+	ser1.parity = serial.PARITY_NONE        #set parity check: no parity
+    ser1.stopbits = serial.STOPBITS_ONE     #number of stop bits
 	#ser.timeout = None          #block read
 	ser1.timeout = 1            #non-block read
 	#ser.timeout = 2              #timeout block read
