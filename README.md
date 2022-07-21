@@ -122,3 +122,5 @@ roslaunch ueye_cam stereo_cameras_trigger.launch
     - The USB power the computer is supplying isn't enough
         - For this reason it is necessary to have a USB hub that can be powered externally.
 
+Any change made to the .cpp files needs to be completed with catkin_make. Also, if created any .cpp file, it is necessary to add an entry to the CMakeList.txt.
+In the case of python files, there isn't the need to add nothing to the CMakeList.txt
