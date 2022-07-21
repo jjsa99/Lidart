@@ -69,8 +69,11 @@ target_link_libaries(PPUnit ${catkin_LIBRARIES})
 
 ```
 
+## How to run the setup
+
+
 ### Run the cameras
-In order to run the cameras it is necessary to use the third party library created by anqixu(https://github.com/anqixu/).\\
+In order to run the cameras it is necessary to use the third party library created by anqixu(https://github.com/anqixu/).
 When opening the repo, the path is :
 ``` bash
 ~/catkin_ws/src/ueye_cam/launch/
