@@ -13,7 +13,7 @@ LiDART is capable of displaying in the GUI the point-cloud while the point-gener
 
 ## Setup details
 
-To run this seltup, it was used:
+To run this setup, it was used:
 - Linux 20.04 LTS
 - ROS based system(noetic version)
 - Cameras : IDS imaging UI-3260CP-M/C in stereo configuration
@@ -68,3 +68,29 @@ add_executable (camera_subscriber src/camera_subscriber_test.cpp)
 target_link_libaries(PPUnit ${catkin_LIBRARIES})
 
 ```
+
+### Run the cameras
+In order to run the cameras it is necessary to use the third party library created by anqixu(https://github.com/anqixu/).\\
+When opening the repo, the path is :
+``` bash
+~/catkin_ws/src/ueye_cam/launch/
+```
+In order to trigger to cameras with the specs used in this project, it was created two launch files for this purpose:
+- stereo_cameras_no_trigger.launch
+- stereo_cameras_trigger.launch
+
+Depending on which application the user wants to use the setup(having an external trigger to actuate both cameras at the same time(....trigger.launch) or other application where the trigger isn't important(...._no_trigger.launch)).
+
+To launch either file:
+``` bash
+roslaunch ueye_cam stereo_cameras_trigger.launch
+```
+
+**Possible error and solutions:**
+- It might be useful to have the ids manager application installed. Despite not being used, it is possible to quickly check whether a camera is being identified by the computer.
+- These cameras require a higher voltage than normal USB devices. If your computer doesn't recognized the cameras it is possible that 2 things are happening:
+    - The IDS driver isn't installed
+    - The USB power the computer is supplying isn't enough
+        - For this reason it is necessary to have a USB hub that can be powered externally.
+
+
