@@ -70,7 +70,33 @@ target_link_libaries(PPUnit ${catkin_LIBRARIES})
 ```
 
 ## How to run the setup
+The programs necessary to run the setup are:
+- PPUnit : It's considered the processing unit. It receives the photos from the image nodes, finds the centroids, triangulates and creates the pointcloud.
+- mirror_laser : This program initializes the cameras and laser trigger and the mirror. It communicates with all the different nodes
+- dashboard : The GUI. It allows the user to define the parameters.
+- ueye_cam( stereo_cameras_trigger.launch) : it launches both cameras
 
+Before running anything it is important to check for 2 things:
+    - if running in a VM( in my case VMWare, VMWare has a feature called removable devices), there is a list of all the devices connected to the computer, it is possible that some by not be in the connected state by default. Check that before anything else
+    - Run the command dmesg in the terminal to check what devices are connected to what. It is possible that the ports the trigger might have changed.
+
+
+To start ROS, open a terminal(I recomend terminator) and write:
+```bash
+roscore
+```
+Then, start all the different files:
+```bash
+roslaunch lidart_workspace stereo_camera_trigger.launch
+rosrun lidart_workspace mirror_laser.py
+rosrun lidart_workspace PPUnit
+rosrun lidart_workspace dashboard.py
+```
+After that, and if no problems arise, the program is ready to run.
+
+### Variations
+There is a couple of variations to the main purpose of the file.
+The file camera_trigger.py can be used to only trigger the cameras, when the mirror nor the laser are connected.
 
 ### Run the cameras
 In order to run the cameras it is necessary to use the third party library created by anqixu(https://github.com/anqixu/).
@@ -95,5 +121,4 @@ roslaunch ueye_cam stereo_cameras_trigger.launch
     - The IDS driver isn't installed
     - The USB power the computer is supplying isn't enough
         - For this reason it is necessary to have a USB hub that can be powered externally.
-
 
