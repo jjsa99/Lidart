@@ -132,6 +132,30 @@ def call_trigger(data):
 	return 1
 
 
+def initialize_triggering():
+
+	ser1 = serial.Serial()
+	#ser1.port = "/dev/ttyUSB0"
+	ser1.port = "/dev/ttyACM1"
+	ser1.baudrate = 9600
+	ser1.bytesize = serial.EIGHTBITS #number of bits per bytes
+	ser1.parity = serial.PARITY_NONE #set parity check: no parity
+	ser1.stopbits = serial.STOPBITS_ONE #number of stop bits
+	#ser.timeout = None          #block read
+	ser1.timeout = 1            #non-block read
+	#ser.timeout = 2              #timeout block read
+	ser1.xonxoff = False     #disable software flow control
+	ser1.rtscts = False     #disable hardware (RTS/CTS) flow control
+	ser1.dsrdtr = False       #disable hardware (DSR/DTR) flow control
+	ser1.writeTimeout = 2     #timeout for write
+
+	try: 
+		ser1.open()
+	except Exception as e:
+		print ('error open serial port: ' + str(e))
+		exit()
+
+
 def CameraTrigger():
 	#rospy.init_node('Mirror_Arduino', anonymous=True)
 
@@ -144,6 +168,11 @@ def CameraTrigger():
 	rospy.Subscriber("Photo_Ready1", Int8, call_Photo_Ready1)
 	rospy.Subscriber("Photo_Ready2", Int8, call_Photo_Ready2)
 	################
+
+    initialize_triggering()
+
+    rospy.loginfo("Camera and laser triggering")
+
 
 
 if __name__ == '__main__':
